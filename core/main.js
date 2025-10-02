@@ -64,7 +64,7 @@ function init() {
         settings.mainClicker = gameSettings.mainClicker;
         settings.buildings = gameSettings.buildings;
         settings.upgrades = gameSettings.upgrades;
-        settings.achievements = gameAchievements;
+        settings.achievements = [...gameMainAchievements, ...gameSecretAchievements];
         settings.eventMissions = gameEventMissions;
         settings.globalMissionCooldown = gameSettings.globalMissionCooldown;
 
@@ -206,4 +206,3 @@ function setupEventListeners() {
         }
     });
 }
-
