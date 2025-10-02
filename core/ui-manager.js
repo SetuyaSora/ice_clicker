@@ -169,12 +169,13 @@ function updateAchievementsPanelUI() {
         el.className = `achievement-item p-3 rounded-lg flex items-center gap-4 ${isUnlocked ? 'unlocked' : ''}`;
         
         let name, description, icon, conditionText;
+        const difficultyStars = '⭐'.repeat(ach.difficulty);
 
         if (isUnlocked) {
             name = ach.name;
             description = ach.description;
             icon = ach.icon;
-            conditionText = getAchievementConditionText(ach.condition);
+            conditionText = getAchievementConditionText(ach);
         } else {
             if (ach.type === 'secret') {
                 name = '？？？';
@@ -185,7 +186,7 @@ function updateAchievementsPanelUI() {
                 name = '？？？';
                 description = ach.description;
                 icon = ach.icon;
-                conditionText = getAchievementConditionText(ach.condition);
+                conditionText = getAchievementConditionText(ach);
             }
         }
 
@@ -194,9 +195,10 @@ function updateAchievementsPanelUI() {
             <div class="flex-grow">
                 <h3 class="font-bold text-lg">${name}</h3>
                 <p class="text-sm">${description}</p>
-                ${conditionText ? `<p class="text-xs text-gray-500 mt-1">${conditionText}</p>` : ''}
+                ${conditionText ? `<p class="text-xs text-gray-500 mt-1">【条件】 ${conditionText}</p>` : ''}
             </div>
             <div class="text-right">
+                <div class="text-yellow-500 font-bold">${difficultyStars}</div>
                 <p class="font-bold text-yellow-500">+${ach.fame || 0} 名声</p>
             </div>
         `;
@@ -204,32 +206,25 @@ function updateAchievementsPanelUI() {
     });
 }
 
-function getAchievementConditionText(condition) {
-    if (!condition) return '';
-    
+function getAchievementConditionText(ach) {
+    if (!ach || !ach.condition) return '';
+    const c = ach.condition;
     const getBuildingName = (id) => settings.buildings.find(b => b.id === id)?.name || '特定の施設';
-
-    switch (condition.type) {
-        case 'totalIceCreams':
-            return `累計アイス生産数: ${formatNumber(condition.value)}個`;
-        case 'clicks':
-            return `総クリック回数: ${formatNumber(condition.value)}回`;
-        case 'anyBuildingCount':
-            return `いずれかの施設の所有数: ${formatNumber(condition.value)}個`;
-        case 'specificBuildingCount':
-            return `${getBuildingName(condition.id)}の所有数: ${formatNumber(condition.value)}個`;
-        case 'allBuildingsOwned':
-            return `全ての施設を${formatNumber(condition.value || 1)}個以上所有する`;
-        case 'ips':
-            return `秒間アイス生産数(Ips): ${formatNumber(condition.value)}`;
-        case 'upgradesPurchased':
-            return `購入したアップグレード数: ${formatNumber(condition.value)}個`;
-        case 'clickStrength':
-            return `クリックパワー: ${formatNumber(condition.value)}`;
-        case 'debug':
-            return '隠されたコマンドを見つける';
-        default:
-            return '';
+    
+    switch (c.type) {
+        case 'totalIceCreams': return `累計アイス生産数: ${formatNumber(c.value)}個`;
+        case 'iceCreams': return `所持アイス: ${formatNumber(c.value)}個`;
+        case 'clicks': return `総クリック回数: ${formatNumber(c.value)}回`;
+        case 'anyBuildingCount': return `いずれかの施設の所有数: ${formatNumber(c.value)}個`;
+        case 'specificBuildingCount': return `${getBuildingName(c.id)}の所有数: ${formatNumber(c.value)}個`;
+        case 'totalBuildings': return `全施設の合計所有数: ${formatNumber(c.value)}個`;
+        case 'allBuildingsCount': return `全ての施設を ${formatNumber(c.value)} 個以上所有`;
+        case 'ips': return `秒間アイス生産数(Ips): ${formatNumber(c.value)}`;
+        case 'upgradesPurchased': return `購入したアップグレード数: ${formatNumber(c.value)}個`;
+        case 'allUpgrades': return '全てのアップグレードを購入';
+        case 'clickStrength': return `クリックパワー: ${formatNumber(c.value)}`;
+        case 'debug': return '隠されたコマンドを見つける';
+        default: return ach.description;
     }
 }
 

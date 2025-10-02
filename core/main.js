@@ -14,6 +14,8 @@ let game = {
     missionCooldowns: {},
     activeBuffs: [],
     lastMissionEndTime: 0,
+    lastClickTimestamp: Date.now(),
+    iceCreamAtLastClick: 0,
 };
 
 const iceCreamCountEl = document.getElementById('ice-cream-count');
@@ -88,6 +90,8 @@ function init() {
                     });
                 }
             });
+             if (!game.lastClickTimestamp) game.lastClickTimestamp = Date.now();
+             if (!game.iceCreamAtLastClick) game.iceCreamAtLastClick = 0;
         }
 
         const mainClickerImg = mainClickerEl.querySelector('img');
@@ -123,10 +127,8 @@ function gameLoop() {
 
     game.iceCreams += iceCreamsToAdd;
     game.totalIceCreamsMade += iceCreamsToAdd;
-
-    iceCreamCountEl.textContent = formatNumber(Math.floor(game.iceCreams));
-    ipsDisplayEl.textContent = formatNumber(ips);
-
+    
+    updateUI();
     checkAchievements();
 }
 
@@ -136,6 +138,9 @@ function setupEventListeners() {
         game.iceCreams += clickPower;
         game.totalIceCreamsMade += clickPower;
         game.clicks++;
+        game.lastClickTimestamp = Date.now();
+        game.iceCreamAtLastClick = game.totalIceCreamsMade;
+
 
         const rect = e.currentTarget.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -145,11 +150,15 @@ function setupEventListeners() {
         if (game.currentMission && game.currentMission.missionData.condition.type === 'clickCount') {
             updateMissionUI();
         }
-        checkAchievements();
+        
+        checkEventAchievement('exactClickCount', { clicks: game.clicks });
         updateUI();
     });
 
-    showAchievementsBtn.addEventListener('click', () => showAchievementsPanel());
+    showAchievementsBtn.addEventListener('click', () => {
+        checkEventAchievement('openAchievementPanel');
+        showAchievementsPanel();
+    });
     closeAchievementsBtn.addEventListener('click', () => hideAchievementsPanel());
     
     const toggleMainBtn = document.getElementById('toggle-main-achievements-btn');
@@ -162,6 +171,7 @@ function setupEventListeners() {
     let keySequence = '';
     const secretCode = 'cream';
     window.addEventListener('keyup', (e) => {
+        if (e.key.length === 1 && !debugModalEl.classList.contains('hidden')) return;
         if (e.key.length === 1) {
             keySequence += e.key;
             if (keySequence.length > secretCode.length) {
@@ -174,8 +184,10 @@ function setupEventListeners() {
                 }, 0);
                 
                 keySequence = '';
-                game.debugMenuOpened = true;
-                checkAchievements();
+                if (!game.debugMenuOpened) {
+                    game.debugMenuOpened = true;
+                    checkAchievements();
+                }
             }
         }
     });
@@ -206,3 +218,4 @@ function setupEventListeners() {
         }
     });
 }
+
