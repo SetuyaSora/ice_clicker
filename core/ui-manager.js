@@ -18,84 +18,147 @@ function updateUI() {
 }
 
 function updateBuildingsUI() {
-    buildingsListEl.innerHTML = '';
     game.buildings.forEach(building => {
+        const buildingSettings = settings.buildings.find(b => b.id === building.id);
+        if (!buildingSettings) return;
+
+        let buildingEl = document.getElementById(`building-${building.id}`);
+
         if (building.displayed) {
-            const buildingSettings = settings.buildings.find(b => b.id === building.id);
-            if (!buildingSettings) return;
+            // 要素が存在しない場合は新規作成
+            if (!buildingEl) {
+                buildingEl = document.createElement('div');
+                buildingEl.id = `building-${building.id}`;
+                buildingEl.innerHTML = `
+                    <img src="${buildingSettings.icon}" class="w-12 h-12">
+                    <div class="flex-grow">
+                        <h3 class="font-bold text-lg">${buildingSettings.name}</h3>
+                        <p class="text-sm">コスト: <span class="cost"></span></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-2xl count">${building.count}</p>
+                        <p class="text-xs">${formatNumber(buildingSettings.baseIps)} アイス/秒</p>
+                    </div>
+                `;
+                buildingEl.addEventListener('click', () => buyBuilding(building.id));
+                addTooltip(buildingEl, buildingSettings.description);
+                buildingsListEl.appendChild(buildingEl);
+            }
+
+            // 既存の要素の内容を更新
             const currentCost = Math.ceil(buildingSettings.cost * Math.pow(1.15, building.count));
             const canBuy = Math.floor(game.iceCreams) >= currentCost;
-            const buildingEl = document.createElement('div');
+
             buildingEl.className = `item-box p-3 rounded-lg flex items-center gap-4 ${canBuy ? 'can-buy' : ''}`;
-            buildingEl.innerHTML = `
-                <img src="${buildingSettings.icon}" class="w-12 h-12">
-                <div class="flex-grow">
-                    <h3 class="font-bold text-lg">${buildingSettings.name}</h3>
-                    <p class="text-sm">コスト: ${formatNumber(currentCost)}</p>
-                </div>
-                <div class="text-right">
-                    <p class="font-bold text-2xl">${building.count}</p>
-                    <p class="text-xs">${formatNumber(buildingSettings.baseIps)} アイス/秒</p>
-                </div>
-            `;
-            buildingEl.addEventListener('click', () => buyBuilding(building.id));
-            addTooltip(buildingEl, buildingSettings.description);
-            buildingsListEl.appendChild(buildingEl);
+            buildingEl.querySelector('.cost').textContent = formatNumber(currentCost);
+            buildingEl.querySelector('.count').textContent = building.count;
+
+        } else if (buildingEl) {
+            // 表示フラグがfalseで、要素がまだ存在する場合は削除
+            buildingEl.remove();
         }
     });
 }
+
 
 function updateUpgradesUI() {
-    clickUpgradesListEl.innerHTML = '';
-    unlockListEl.innerHTML = '';
     if (!settings.upgrades) return;
-    settings.upgrades.forEach(upgrade => {
-        if (!game.upgrades.includes(upgrade.id)) {
-            const isPrerequisiteMet = !upgrade.prerequisite || game.upgrades.includes(upgrade.prerequisite);
-            if (isPrerequisiteMet) {
-                let shouldDisplay = true;
-                if (upgrade.effects && upgrade.effects.type === 'unlock') {
-                     const buildingToUnlock = game.buildings.find(b => b.id === upgrade.effects.building);
-                     if (buildingToUnlock && buildingToUnlock.displayed) {
-                         shouldDisplay = false;
-                     }
-                }
 
-                if(shouldDisplay) {
-                    const canBuy = Math.floor(game.iceCreams) >= upgrade.cost;
-                    const upgradeEl = document.createElement('div');
-                    upgradeEl.className = `item-box p-2 rounded-lg flex items-center gap-3 ${canBuy ? 'can-buy' : ''}`;
-                    upgradeEl.innerHTML = `
-                        <img src="${upgrade.icon}" class="w-10 h-10">
-                        <div class="flex-grow">
-                            <h3 class="font-bold">${upgrade.name}</h3>
-                            <p class="text-xs">コスト: ${formatNumber(upgrade.cost)}</p>
-                        </div>
-                    `;
-                    upgradeEl.addEventListener('click', () => buyUpgrade(upgrade.id));
-                    addTooltip(upgradeEl, upgrade.description);
-                    if (upgrade.effects && upgrade.effects.type === 'unlock') {
-                        unlockListEl.appendChild(upgradeEl);
-                    } else {
-                        clickUpgradesListEl.appendChild(upgradeEl);
-                    }
-                }
+    settings.upgrades.forEach(upgrade => {
+        const upgradeEl = document.getElementById(`upgrade-${upgrade.id}`);
+        const isPurchased = game.upgrades.includes(upgrade.id);
+
+        // 購入済みの場合は要素を削除して終了
+        if (isPurchased) {
+            if (upgradeEl) upgradeEl.remove();
+            return;
+        }
+
+        const isPrerequisiteMet = !upgrade.prerequisite || game.upgrades.includes(upgrade.prerequisite);
+        let shouldDisplay = true;
+        if (upgrade.effects && upgrade.effects.type === 'unlock') {
+            const buildingToUnlock = game.buildings.find(b => b.id === upgrade.effects.building);
+            if (buildingToUnlock && buildingToUnlock.displayed) {
+                shouldDisplay = false;
             }
+        }
+
+        // 表示条件を満たさない場合は要素を削除して終了
+        if (!isPrerequisiteMet || !shouldDisplay) {
+            if (upgradeEl) upgradeEl.remove();
+            return;
+        }
+
+        // この時点でアップグレードは表示されるべき
+        const canBuy = Math.floor(game.iceCreams) >= upgrade.cost;
+
+        if (!upgradeEl) {
+            // 要素が存在しない場合は新規作成
+            const newUpgradeEl = document.createElement('div');
+            newUpgradeEl.id = `upgrade-${upgrade.id}`;
+            newUpgradeEl.innerHTML = `
+                <img src="${upgrade.icon}" class="w-10 h-10">
+                <div class="flex-grow">
+                    <h3 class="font-bold">${upgrade.name}</h3>
+                    <p class="text-xs">コスト: ${formatNumber(upgrade.cost)}</p>
+                </div>
+            `;
+            newUpgradeEl.addEventListener('click', () => buyUpgrade(upgrade.id));
+            addTooltip(newUpgradeEl, upgrade.description);
+            
+            if (upgrade.effects && upgrade.effects.type === 'unlock') {
+                unlockListEl.appendChild(newUpgradeEl);
+            } else {
+                clickUpgradesListEl.appendChild(newUpgradeEl);
+            }
+            // クラス名は作成後に追加
+            newUpgradeEl.className = `item-box p-2 rounded-lg flex items-center gap-3 ${canBuy ? 'can-buy' : ''}`;
+        } else {
+            // 既存の要素はクラス名のみ更新
+            upgradeEl.className = `item-box p-2 rounded-lg flex items-center gap-3 ${canBuy ? 'can-buy' : ''}`;
         }
     });
 }
 
+
 function addTooltip(element, text) {
-    element.addEventListener('mouseenter', () => {
+    let tooltipVisible = false;
+    let lastX = 0;
+    let lastY = 0;
+    let animationFrameId = null;
+
+    const updateTooltipPosition = () => {
+        tooltipEl.style.left = `${lastX + 10}px`;
+        tooltipEl.style.top = `${lastY + 10}px`;
+        animationFrameId = null;
+    };
+
+    element.addEventListener('mouseenter', (e) => {
+        tooltipVisible = true;
         tooltipEl.innerHTML = text;
         tooltipEl.classList.remove('hidden');
+        lastX = e.pageX;
+        lastY = e.pageY;
+        if (!animationFrameId) {
+            animationFrameId = requestAnimationFrame(updateTooltipPosition);
+        }
     });
+
     element.addEventListener('mousemove', (e) => {
-        tooltipEl.style.left = `${e.pageX + 10}px`;
-        tooltipEl.style.top = `${e.pageY + 10}px`;
+        lastX = e.pageX;
+        lastY = e.pageY;
+        if (tooltipVisible && !animationFrameId) {
+            animationFrameId = requestAnimationFrame(updateTooltipPosition);
+        }
     });
+
     element.addEventListener('mouseleave', () => {
+        tooltipVisible = false;
         tooltipEl.classList.add('hidden');
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
     });
 }
 
@@ -408,4 +471,3 @@ function setupSaveLoadEventListeners() {
         }
     });
 }
-
