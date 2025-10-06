@@ -41,11 +41,6 @@ const gameSecretAchievements = [
         condition: { type: 'cleanPurchase' }
     },
     {
-        id: 'secret_system_achievementPanelOpen', name: '見るだけ', description: '実績画面を初めて開く。',
-        icon: '👀', fame: 5, difficulty: 1, type: 'secret',
-        condition: { type: 'openAchievementPanel' }
-    },
-    {
         id: 'secret_challenge_allUnlockUpgrades', name: '無計画', description: '施設アンロック系のアップグレードをすべて購入する。',
         icon: '🗺️', fame: 5, difficulty: 1, type: 'secret',
         condition: { type: 'allUnlockUpgradesPurchased' }

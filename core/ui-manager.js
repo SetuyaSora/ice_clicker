@@ -247,7 +247,43 @@ function hideAchievementsPanel() {
 function updateAchievementsPanelUI() {
     if (!settings.achievements || !achievementsListEl) return;
     
+    // ---解放率ゲージの計算---
+    const mainAchievements = settings.achievements.filter(ach => ach.type === 'main');
+    const secretAchievements = settings.achievements.filter(ach => ach.type === 'secret');
+
+    const unlockedMainCount = mainAchievements.filter(ach => game.unlockedAchievements.includes(ach.id)).length;
+    const unlockedSecretCount = secretAchievements.filter(ach => game.unlockedAchievements.includes(ach.id)).length;
+
+    const totalMain = mainAchievements.length;
+    const totalSecret = secretAchievements.length;
+
+    const mainPercentage = totalMain > 0 ? (unlockedMainCount / totalMain) * 100 : 0;
+    const secretPercentage = totalSecret > 0 ? (unlockedSecretCount / totalSecret) * 100 : 0;
+
+    // ---ゲージの表示内容を更新---
+    document.getElementById('main-achievement-progress-bar').style.width = `${mainPercentage}%`;
+    document.getElementById('main-achievement-progress-text').textContent = `${unlockedMainCount} / ${totalMain} (${mainPercentage.toFixed(1)}%)`;
+    document.getElementById('secret-achievement-progress-bar').style.width = `${secretPercentage}%`;
+    document.getElementById('secret-achievement-progress-text').textContent = `${unlockedSecretCount} / ${totalSecret} (${secretPercentage.toFixed(1)}%)`;
+    
+    // ---アクティブなタブに応じて、表示するゲージを切り替える---
     const currentView = document.querySelector('.achievement-tab-btn.active').id.includes('main') ? 'main' : 'secret';
+    const mainProgressContainer = document.getElementById('main-achievement-progress-container');
+    const secretProgressContainer = document.getElementById('secret-achievement-progress-container');
+
+    if (currentView === 'main') {
+        mainProgressContainer.classList.remove('hidden');
+        secretProgressContainer.classList.add('hidden');
+    } else { // 'secret' view
+        mainProgressContainer.classList.add('hidden');
+        if (game.secretTabUnlocked) {
+            secretProgressContainer.classList.remove('hidden');
+        } else {
+            secretProgressContainer.classList.add('hidden');
+        }
+    }
+    
+    // ---実績タイルの表示更新---
     const achievementsToDisplay = settings.achievements.filter(ach => ach.type === currentView);
     
     achievementsListEl.innerHTML = ''; // 既存の要素をクリア
@@ -537,4 +573,5 @@ function setupSaveLoadEventListeners() {
         }
     });
 }
+
 

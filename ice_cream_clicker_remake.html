@@ -145,10 +145,31 @@
                 <button id="close-achievements-btn" class="text-3xl font-bold clickable">&times;</button>
             </div>
             <!-- Achievement Toggles -->
-                        <div class="flex border-b-2 border-yellow-400 mb-2">
+            <div class="flex border-b-2 border-yellow-400 mb-2">
                 <button id="toggle-main-achievements-btn" class="flex-1 p-2 font-bold text-lg focus:outline-none achievement-tab-btn active">通常実績</button>
                 <button id="toggle-secret-achievements-btn" class="flex-1 p-2 font-bold text-lg focus:outline-none achievement-tab-btn hidden">隠し実績</button>
             </div>
+
+            <!-- Achievement Progress Bars -->
+            <div id="main-achievement-progress-container" class="px-2 mb-2">
+                <div class="flex justify-between items-center text-sm mb-1">
+                    <span class="font-bold">通常実績 解放率</span>
+                    <span id="main-achievement-progress-text">0/0 (0%)</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="main-achievement-progress-bar" class="bg-yellow-400 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+            <div id="secret-achievement-progress-container" class="px-2 mb-2 hidden">
+                <div class="flex justify-between items-center text-sm mb-1">
+                    <span class="font-bold">隠し実績 解放率</span>
+                    <span id="secret-achievement-progress-text">0/0 (0%)</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="secret-achievement-progress-bar" class="bg-purple-400 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+
             <div id="achievements-list" class="p-2 scrollable-content flex-grow"></div>
         </div>
     </div>
@@ -205,3 +226,4 @@
     <script src="core/main.js"></script>
 </body>
 </html>
+

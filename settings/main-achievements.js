@@ -50,6 +50,12 @@ const gameMainAchievements = [
         icon: '💪', fame: 2, difficulty: 1, type: 'main',
         condition: { type: 'clickStrength', value: 100 }
     },
+    {
+        id: 'main_system_achievementPanelOpen', name: '見るだけ', description: '実績画面を初めて開く。',
+        icon: '👀', fame: 5, difficulty: 1, type: 'main',
+        condition: { type: 'openAchievementPanel' }
+    },
+
     // --- 難易度 2 ---
     {
         id: 'main_production_total1m', name: 'アイスクリーム工場長', description: '累計アイス生産数が100万個に到達。ヘルメットがよく似合う。',
