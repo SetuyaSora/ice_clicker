@@ -128,8 +128,31 @@ function addTooltip(element, text) {
     let animationFrameId = null;
 
     const updateTooltipPosition = () => {
-        tooltipEl.style.left = `${lastX + 10}px`;
-        tooltipEl.style.top = `${lastY + 10}px`;
+        const tooltipWidth = tooltipEl.offsetWidth;
+        const tooltipHeight = tooltipEl.offsetHeight;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        // 初期位置をカーソルの右下に設定
+        let newX = lastX + 15;
+        let newY = lastY + 15;
+
+        // 右端にはみ出すかチェック
+        if (newX + tooltipWidth > viewportWidth) {
+            newX = lastX - tooltipWidth - 15; // はみ出すならカーソルの左に
+        }
+
+        // 下端にはみ出すかチェック
+        if (newY + tooltipHeight > viewportHeight) {
+            newY = lastY - tooltipHeight - 15; // はみ出すならカーソルの上に
+        }
+        
+        // 念のため、左端・上端もチェック
+        if (newX < 0) newX = 5;
+        if (newY < 0) newY = 5;
+
+        tooltipEl.style.left = `${newX}px`;
+        tooltipEl.style.top = `${newY}px`;
         animationFrameId = null;
     };
 
