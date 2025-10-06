@@ -56,7 +56,7 @@
     </div>
 
     <!-- Tooltip -->
-    <div id="tooltip" class="hidden absolute bg-gray-800 text-white text-sm rounded-lg px-3 py-2 z-50 pointer-events-none max-w-xs"></div>
+    <div id="tooltip" class="hidden absolute bg-gray-800 text-white text-sm rounded-lg px-3 py-2 z-[200] pointer-events-none max-w-xs"></div>
 
     <!-- Save/Load Modal -->
     <div id="save-load-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[100] flex items-center justify-center p-4">
@@ -145,11 +145,11 @@
                 <button id="close-achievements-btn" class="text-3xl font-bold clickable">&times;</button>
             </div>
             <!-- Achievement Toggles -->
-            <div class="flex border-b-2 border-yellow-400 mb-2">
+                        <div class="flex border-b-2 border-yellow-400 mb-2">
                 <button id="toggle-main-achievements-btn" class="flex-1 p-2 font-bold text-lg focus:outline-none achievement-tab-btn active">通常実績</button>
                 <button id="toggle-secret-achievements-btn" class="flex-1 p-2 font-bold text-lg focus:outline-none achievement-tab-btn hidden">隠し実績</button>
             </div>
-            <div id="achievements-list" class="space-y-2 p-2 scrollable-content flex-grow"></div>
+            <div id="achievements-list" class="p-2 scrollable-content flex-grow"></div>
         </div>
     </div>
 

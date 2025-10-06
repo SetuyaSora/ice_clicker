@@ -218,56 +218,99 @@ function hideAchievementsPanel() {
     achievementsPanel.classList.add('hidden');
 }
 
+/**
+ * 実績パネルのUIをグリッド形式で更新します。
+ */
 function updateAchievementsPanelUI() {
     if (!settings.achievements || !achievementsListEl) return;
     
     const currentView = document.querySelector('.achievement-tab-btn.active').id.includes('main') ? 'main' : 'secret';
-    
     const achievementsToDisplay = settings.achievements.filter(ach => ach.type === currentView);
     
-    achievementsListEl.innerHTML = '';
+    achievementsListEl.innerHTML = ''; // 既存の要素をクリア
+
     achievementsToDisplay.forEach(ach => {
         const isUnlocked = game.unlockedAchievements.includes(ach.id);
-        const el = document.createElement('div');
-        el.className = `achievement-item p-3 rounded-lg flex items-center gap-4 ${isUnlocked ? 'unlocked' : ''}`;
-        
-        let name, description, icon, conditionText;
-        const difficultyStars = '⭐'.repeat(ach.difficulty);
+        const tile = document.createElement('div');
+        tile.className = `achievement-tile ${isUnlocked ? 'unlocked' : 'locked'}`;
+
+        let iconHtml = '';
+        // アイコンが画像パスか絵文字/テキストかを判定
+        const isIconImage = ach.icon && (ach.icon.includes('.png') || ach.icon.includes('.jpg') || ach.icon.includes('.ico'));
 
         if (isUnlocked) {
-            name = ach.name;
-            description = ach.description;
-            icon = ach.icon;
-            conditionText = getAchievementConditionText(ach);
+            if (isIconImage) {
+                iconHtml = `<img src="${ach.icon}" alt="${ach.name}">`;
+            } else {
+                iconHtml = `<div class="text-icon">${ach.icon}</div>`;
+            }
         } else {
+            // 未解除の実績
             if (ach.type === 'secret') {
-                name = '？？？';
-                description = '達成条件は謎に包まれている…';
-                icon = '❓';
-                conditionText = '';
-            } else { // main achievement
-                name = '？？？';
-                description = ach.description;
-                icon = ach.icon;
-                conditionText = getAchievementConditionText(ach);
+                iconHtml = `<div class="text-icon">❓</div>`;
+            } else {
+                // 通常の未解除実績は、プレースホルダー画像を表示
+                iconHtml = `<img src="images/icecream_vanilla.png" class="locked-icon-placeholder" alt="未解除">`;
             }
         }
+        tile.innerHTML = iconHtml;
 
-        el.innerHTML = `
-            <div class="achievement-icon text-4xl">${icon}</div>
-            <div class="flex-grow">
-                <h3 class="font-bold text-lg">${name}</h3>
-                <p class="text-sm">${description}</p>
-                ${conditionText ? `<p class="text-xs text-gray-500 mt-1">【条件】 ${conditionText}</p>` : ''}
-            </div>
-            <div class="text-right">
-                <div class="text-yellow-500 font-bold">${difficultyStars}</div>
-                <p class="font-bold text-yellow-500">+${ach.fame || 0} 名声</p>
-            </div>
-        `;
-        achievementsListEl.appendChild(el);
+        // 各タイルにツールチップを設定
+        const tooltipHtml = createAchievementTooltipHtml(ach, isUnlocked);
+        addTooltip(tile, tooltipHtml);
+
+        achievementsListEl.appendChild(tile);
     });
 }
+
+/**
+ * 実績タイルに表示するツールチップのHTMLを生成します。
+ * @param {object} ach - 実績オブジェクト
+ * @param {boolean} isUnlocked - 解除済みかどうか
+ * @returns {string} - ツールチップ用のHTML文字列
+ */
+function createAchievementTooltipHtml(ach, isUnlocked) {
+    const difficultyStars = '⭐'.repeat(ach.difficulty);
+    let name, description, iconHtml, conditionText;
+
+    const isIconImage = ach.icon && (ach.icon.includes('.png') || ach.icon.includes('.jpg'));
+
+    if (isUnlocked) {
+        name = ach.name;
+        description = ach.description;
+        iconHtml = isIconImage 
+            ? `<img src="${ach.icon}" class="w-12 h-12 mr-3 flex-shrink-0">` 
+            : `<div class="text-4xl mr-3 flex-shrink-0">${ach.icon}</div>`;
+        conditionText = getAchievementConditionText(ach);
+    } else {
+        name = '？？？';
+        if (ach.type === 'secret') {
+            description = '達成条件は謎に包まれている…';
+            iconHtml = `<div class="text-4xl mr-3 flex-shrink-0">❓</div>`;
+            conditionText = '';
+        } else { // 通常の未解除実績
+            description = ach.description; // ヒントとして説明は表示
+            iconHtml = `<img src="images/icecream_vanilla.png" class="w-12 h-12 mr-3 opacity-50 flex-shrink-0">`;
+            conditionText = getAchievementConditionText(ach);
+        }
+    }
+
+    return `
+        <div class="flex items-start p-1">
+            ${iconHtml}
+            <div class="flex-grow">
+                <h3 class="font-bold text-lg text-yellow-300">${name}</h3>
+                <p class="text-sm text-white">${description}</p>
+                ${conditionText ? `<p class="text-xs text-gray-300 mt-2"><b>【条件】</b> ${conditionText}</p>` : ''}
+                <div class="flex justify-between items-center mt-2 text-yellow-400 text-sm">
+                    <div>${difficultyStars}</div>
+                    <div class="font-bold">+${ach.fame || 0} 名声</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 
 function getAchievementConditionText(ach) {
     if (!ach || !ach.condition) return '';
@@ -471,3 +514,4 @@ function setupSaveLoadEventListeners() {
         }
     });
 }
+
