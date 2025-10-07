@@ -74,7 +74,7 @@ function checkMissionTriggers() {
 function addPendingMission(mission) {
     if (game.pendingMissions.length < settings.missionBoardCapacity && !game.pendingMissions.some(m => m.id === mission.id)) {
         game.pendingMissions.push(mission);
-        updateMissionBoardUI();
+        // UI更新は呼び出し元(main.jsなど)に任せる
     }
 }
 
@@ -92,7 +92,7 @@ function acceptMission(missionId) {
     startMission(missionToStart);
     
     hideMissionBoard();
-    updateMissionBoardUI();
+    updateMissionBoardUI(); // これはui-missions.jsの関数
 }
 
 function discardMission(missionId) {
@@ -100,7 +100,7 @@ function discardMission(missionId) {
         const missionIndex = game.pendingMissions.findIndex(m => m.id === missionId);
         if (missionIndex > -1) {
             game.pendingMissions.splice(missionIndex, 1);
-            updateMissionBoardUI();
+            updateMissionBoardUI(); // これはui-missions.jsの関数
             showInfoToast("依頼を破棄しました。");
         }
     });
@@ -153,12 +153,8 @@ function startMission(mission) {
             break;
     }
 
-    missionNameEl.textContent = mission.name;
-    let description = mission.description.replace('{goal}', formatNumber(game.currentMission.goal));
-    description = description.replace('{reward}', formatNumber(game.currentMission.rewardValue));
-    missionDescriptionEl.innerHTML = description;
-    eventMissionPanel.classList.remove('hidden');
-    updateMissionUI();
+    // UI更新は呼び出し元に任せる
+    updateMissionUI(); 
 }
 
 function updateMission() {
@@ -183,14 +179,12 @@ function updateMission() {
             break;
     }
 
-    console.log(`[ミッション進捗] ${data.name}: ${formatNumber(currentProgress)} / ${formatNumber(mission.goal)} | クリア判定: ${currentProgress >= mission.goal}`);
-
     if (currentProgress >= mission.goal) {
         endMission(true);
         return;
     }
 
-    updateMissionUI(currentProgress);
+    updateMissionUI(currentProgress); // これはui-missions.jsの関数
 }
 
 function endMission(isSuccess) {
@@ -199,7 +193,7 @@ function endMission(isSuccess) {
     const mission = game.currentMission;
     const data = mission.missionData;
 
-    showMissionResultPopup(isSuccess, data, mission.rewardValue);
+    showMissionResultPopup(isSuccess, data, mission.rewardValue); // これはui-modals.jsの関数
 
     if (isSuccess) {
         giveReward(data.reward, mission.rewardValue);
@@ -214,20 +208,21 @@ function endMission(isSuccess) {
 
     game.lastMissionEndTime = Date.now();
     game.currentMission = null;
-    updateMissionBoardUI();
-    updateMissionUI(); 
+
+    updateMissionBoardUI(); // これはui-missions.jsの関数
+    updateMissionUI(); // これもui-missions.jsの関数
 }
 
-    function giveReward(reward, rewardValue) {
-        switch (reward.type) {
-            case 'giveIce':
-                game.iceCreams += rewardValue;
-                game.totalIceCreamsMade += rewardValue;
-                break;
-            case 'buff':
-                // ここにバフ処理を追加します
-                console.log(`Buff activated: ${reward.effect} x${reward.multiplier} for ${reward.duration}s`);
-                break;
+function giveReward(reward, rewardValue) {
+    switch (reward.type) {
+        case 'giveIce':
+            game.iceCreams += rewardValue;
+            game.totalIceCreamsMade += rewardValue;
+            break;
+        case 'buff':
+            // ここにバフ処理を追加します
+            console.log(`Buff activated: ${reward.effect} x${reward.multiplier} for ${reward.duration}s`);
+            break;
     }
 }
 
@@ -242,4 +237,3 @@ function evaluateMissionFormula(formula, context) {
         return 0;
     }
 }
-

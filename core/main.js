@@ -19,50 +19,7 @@ let game = {
     iceCreamAtLastClick: 0,
 };
 
-const iceCreamCountEl = document.getElementById('ice-cream-count');
-const ipsDisplayEl = document.getElementById('ips-display');
-const mainClickerEl = document.getElementById('main-clicker');
-const buildingsListEl = document.getElementById('buildings-list');
-const clickUpgradesListEl = document.getElementById('click-upgrades-list');
-const unlockListEl = document.getElementById('unlock-list');
-const famePointsEl = document.getElementById('fame-points');
-const fameBonusEl = document.getElementById('fame-bonus');
-const tooltipEl = document.getElementById('tooltip');
-const showAchievementsBtn = document.getElementById('show-achievements-btn');
-const saveBtn = document.getElementById('save-btn');
-const loadBtn = document.getElementById('load-btn');
-const importBtn = document.getElementById('import-btn');
-const achievementsPanel = document.getElementById('achievements-panel');
-const closeAchievementsBtn = document.getElementById('close-achievements-btn');
-const achievementsListEl = document.getElementById('achievements-list');
-const saveLoadModal = document.getElementById('save-load-modal');
-const closeSaveLoadModalBtn = document.getElementById('close-save-load-modal');
-const confirmationModal = document.getElementById('confirmation-modal');
-const exportModal = document.getElementById('export-modal');
-const importModal = document.getElementById('import-modal');
-const achievementToast = document.getElementById('achievement-toast');
-const toastAchievementNameEl = document.getElementById('toast-achievement-name');
-const infoToast = document.getElementById('info-toast');
-const toastInfoMessageEl = document.getElementById('toast-info-message');
-const debugModalEl = document.getElementById('debug-modal');
-const debugInputEl = document.getElementById('debug-input');
-const debugCancelBtn = document.getElementById('debug-cancel');
-const debugExecuteBtn = document.getElementById('debug-execute');
-const eventMissionPanel = document.getElementById('event-mission-panel');
-const missionNameEl = document.getElementById('mission-name');
-const missionDescriptionEl = document.getElementById('mission-description');
-const missionProgressBar = document.getElementById('mission-progress-bar');
-const missionProgressTextEl = document.getElementById('mission-progress-text');
-const missionTimerEl = document.getElementById('mission-timer');
-const missionResultPopupEl = document.getElementById('mission-result-popup');
-const missionResultContentEl = document.getElementById('mission-result-content');
-const missionResultTitleEl = document.getElementById('mission-result-title');
-const missionResultMessageEl = document.getElementById('mission-result-message');
-// Mission Board Elements
-const missionBoardToggleEl = document.getElementById('mission-board-toggle');
-const missionBoardPanelEl = document.getElementById('mission-board-panel');
-const closeMissionBoardBtn = document.getElementById('close-mission-board-btn');
-
+// UI要素の定数宣言は ui-elements.js に移動しました
 
 function executeDebugCommand(command) {
     const parts = command.split(' ');
@@ -109,6 +66,7 @@ function executeDebugCommand(command) {
                     showInfoToast("そのミッションは既にボードにあります。");
                 } else {
                     addPendingMission(missionToAdd);
+                    updateMissionBoardUI(); // ★ UI更新をここに追加
                     showInfoToast(`ミッション「${missionToAdd.name}」をボードに追加しました。`);
                 }
             } else {
@@ -195,6 +153,7 @@ function gameLoop() {
     const ips = calculateIps();
     const fameBonus = 1 + (game.famePoints / 100);
     const iceCreamsToAdd = (ips * fameBonus) / 10;
+    const previousPendingMissionsCount = game.pendingMissions.length;
 
     // 2. ゲームの状態を更新
     game.iceCreams += iceCreamsToAdd;
@@ -207,6 +166,11 @@ function gameLoop() {
     // 4. UIの更新と実績のチェック
     updateUI();
     checkAchievements();
+
+    // ★ ミッションボードに変化があったらUIを更新
+    if (game.pendingMissions.length !== previousPendingMissionsCount) {
+        updateMissionBoardUI();
+    }
 }
 
 function setupEventListeners() {
@@ -299,5 +263,4 @@ function setupEventListeners() {
         }
     });
 }
-
 

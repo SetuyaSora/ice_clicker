@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-[#FFF5E1] text-[#5C3D2E] select-none">
+    <!-- (existing code) HTMLのコンテンツ部分は変更ありません -->
     <div class="container mx-auto p-4 flex flex-col">
         <header class="text-center mb-4">
             <h1 id="ice-cream-count" class="text-5xl font-bold">0</h1>
@@ -228,18 +229,28 @@
 
     <!-- 
       JavaScriptファイルの読み込み順序は重要です。
-      1. 設定ファイル (settings, achievements, eventMissions)
-      2. セーブ/ロード機能 (save.js)
-      3. UI関連の専門家ファイル (他の専門家が利用するツールを提供するため)
-      4. 計算や実績判定などのコアな専門家ファイル
-      5. 全てを統括する司令塔ファイル (main.js)
+      1. 設定ファイル
+      2. セーブ/ロード機能
+      3. UI要素定義 (最重要！)
+      4. 分割されたUI関連ファイル
+      5. コアなロジックファイル
+      6. 全てを統括する司令塔ファイル (main.js)
     -->
     <script src="settings/settings.js"></script>
     <script src="settings/main-achievements.js"></script>
     <script src="settings/secret-achievements.js"></script>
     <script src="settings/eventMissions.js"></script>
     <script src="save.js"></script>
-    <script src="core/ui-manager.js"></script> 
+    
+    <!-- ▼▼▼ UI関連の読み込みパスを修正 ▼▼▼ -->
+    <script src="core/ui/ui-elements.js"></script>
+    <script src="core/ui/ui-core.js"></script>
+    <script src="core/ui/ui-achievements.js"></script>
+    <script src="core/ui/ui-missions.js"></script>
+    <script src="core/ui/ui-modals.js"></script>
+    <script src="core/ui/ui-save-load.js"></script>
+    <!-- ▲▲▲ ここまで ▲▲▲ -->
+
     <script src="core/core-logic.js"></script>
     <script src="core/achievements-logic.js"></script>
     <script src="core/missions-logic.js"></script>
