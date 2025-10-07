@@ -46,6 +46,6 @@ const gameSettings = {
         { id: 'unlock_dimension', name: '次元の扉の開放許可', icon: 'images/icedimension.png', description: 'アイスクリームの次元の販売を開始します。', cost: 2100000000000000, prerequisite: 'unlock_volcano', effects: { type: 'unlock', building: 'dimension' } },
         { id: 'unlock_blackhole_freezer', name: 'ブラックホールの利用許可', icon: 'images/blackhole.png', description: 'ブラックホール冷凍庫の販売を開始します。', cost: 26000000000000000, prerequisite: 'unlock_dimension', effects: { type: 'unlock', building: 'blackhole_freezer' } },
     ],
-    globalMissionCooldown: 300,
+    globalMissionCooldown: 120,
 };
 
