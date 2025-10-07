@@ -210,6 +210,7 @@ function setupEventListeners() {
     // Mission Board Listeners
     missionBoardToggleEl.addEventListener('click', () => showMissionBoard());
     closeMissionBoardBtn.addEventListener('click', () => hideMissionBoard());
+    missionCancelBtn.addEventListener('click', abortMission);
 
     setupSaveLoadEventListeners();
 
@@ -263,4 +264,3 @@ function setupEventListeners() {
         }
     });
 }
-

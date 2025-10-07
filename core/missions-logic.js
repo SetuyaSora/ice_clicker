@@ -165,7 +165,7 @@ function updateMission() {
     const elapsedTime = (Date.now() - mission.startTime) / 1000;
 
     if (elapsedTime >= mission.timeLimit) {
-        endMission(false);
+        endMission(false, true); // 時間切れで失敗
         return;
     }
 
@@ -180,24 +180,28 @@ function updateMission() {
     }
 
     if (currentProgress >= mission.goal) {
-        endMission(true);
+        endMission(true); // 成功
         return;
     }
 
     updateMissionUI(currentProgress); // これはui-missions.jsの関数
 }
 
-function endMission(isSuccess) {
+function endMission(isSuccess, isTimeout = false) {
     if (!game.currentMission) return;
 
     const mission = game.currentMission;
     const data = mission.missionData;
 
-    showMissionResultPopup(isSuccess, data, mission.rewardValue); // これはui-modals.jsの関数
+    if (isSuccess || isTimeout) {
+        showMissionResultPopup(isSuccess, data, mission.rewardValue);
+    } else {
+        showInfoToast(`依頼「${data.name}」を破棄しました。`);
+    }
 
     if (isSuccess) {
         giveReward(data.reward, mission.rewardValue);
-        if (!data.id.startsWith('debug_')) { // デバッグミッションは完了リストに追加しない
+        if (!data.id.startsWith('debug_')) {
             game.completedMissions.push(mission.id);
         }
     }
@@ -209,8 +213,16 @@ function endMission(isSuccess) {
     game.lastMissionEndTime = Date.now();
     game.currentMission = null;
 
-    updateMissionBoardUI(); // これはui-missions.jsの関数
-    updateMissionUI(); // これもui-missions.jsの関数
+    updateMissionBoardUI();
+    updateMissionUI();
+}
+
+function abortMission() {
+    if (!game.currentMission) return;
+
+    showConfirmation("遂行中のミッションを破棄しますか？", () => {
+        endMission(false, false); // 手動でのキャンセル
+    });
 }
 
 function giveReward(reward, rewardValue) {

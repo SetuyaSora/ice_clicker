@@ -41,3 +41,4 @@ const missionResultMessageEl = document.getElementById('mission-result-message')
 const missionBoardToggleEl = document.getElementById('mission-board-toggle');
 const missionBoardPanelEl = document.getElementById('mission-board-panel');
 const closeMissionBoardBtn = document.getElementById('close-mission-board-btn');
+const missionCancelBtn = document.getElementById('mission-cancel-btn');
