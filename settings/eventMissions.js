@@ -1,100 +1,75 @@
 const gameEventMissions = [
     {
-        id: 'mission_production_rush_dynamic',
-        name: '緊急大量生産！',
-        description: '近くのお祭りでアイスが足りない！<br>3分以内にアイスを<b>{goal}個</b>、追加で納品してくれ！',
-        trigger: [
-            { type: 'ips', value: 1000 },
-            { type: 'random', chance: 0.01 }
-        ],
+        id: 'earn_1',
+        name: '最初の一歩',
+        description: 'まずはアイスを {goal} 個生産してみよう。<br>簡単な目標だ。',
+        trigger: {
+            type: 'totalIceCreams',
+            value: 10
+        },
         condition: {
             type: 'earnIce',
-            value: "ips * 180 * 0.5", // 3分間の総生産量の50%
-            timeLimit: 180
+            value: 'totalIceCreams * 0.5 + 50',
+            timeLimit: 180 // 3分
         },
         reward: {
             type: 'giveIce',
-            value: "goal * 0.5" // 目標の50%を報酬として
+            value: 'goal * 1.2'
         }
     },
     {
-        id: 'mission_click_maniac_dynamic',
-        name: 'クリックマニア',
-        description: '君の情熱を見せてみろ！<br>30秒以内に<b>{goal}回</b>クリックだ！',
-        trigger: [
-            { type: 'totalClicks', value: 500 },
-            { type: 'random', chance: 0.02 }
-        ],
+        id: 'click_1',
+        name: 'クリッカーの心得',
+        description: 'クリックこそ正義！<br>情熱の {goal} クリックを見せてくれ！',
+        trigger: {
+            type: 'totalClicks',
+            value: 20
+        },
         condition: {
             type: 'clickCount',
-            value: "100 + totalClicks / 1000",
-            timeLimit: 30
-        },
-        reward: {
-            type: 'buff',
-            effect: 'clickPower',
-            multiplier: 3,
-            duration: 60
-        }
-    },
-    {
-        id: 'mission_hyper_production',
-        name: 'ハイパー生産モード！',
-        description: '生産ラインが絶好調だ！<br>1分以内に<b>{goal}個</b>のアイスを生産しよう！',
-        trigger: [
-            { type: 'ips', value: 100000 },
-            { type: 'random', chance: 0.005 }
-        ],
-        condition: {
-            type: 'earnIce',
-            value: "ips * 60 * 1.2", // 1分間の総生産量の120%。少し頑張る必要がある
-            timeLimit: 60
+            value: 'totalClicks * 0.8 + 30',
+            timeLimit: 120 // 2分
         },
         reward: {
             type: 'giveIce',
-            value: "ips * 120" // 現在のIpsの2分(120秒)分
+            value: 'clickStrength * 50'
         }
     },
     {
-        id: 'mission_finger_sprint',
-        name: '指先スプリント',
-        description: '腕試しだ！<br>10秒以内に<b>{goal}回</b>クリックしてみろ！',
+        id: 'grandpa_1',
+        name: 'じいちゃんの応援',
+        description: 'わしの仲間を増やしてくれんかの？<br>じいちゃんを{goal}人雇ってくれ！',
         trigger: [
-            { type: 'clickStrength', value: 1000 },
-             { type: 'random', chance: 0.01 }
-        ],
-        condition: {
-            type: 'clickCount',
-            value: 50,
-            timeLimit: 10
-        },
-        reward: {
-            type: 'buff',
-            effect: 'clickPower',
-            multiplier: 7,
-            duration: 20
-        }
-    },
-     {
-        id: 'mission_grandpa_appreciation',
-        name: 'おじいちゃん感謝祭',
-        description: 'おじいちゃんたちが大活躍！<br>彼らの力だけで、5分以内に<b>{goal}個</b>のアイスを作ろう！',
-        trigger: [
-            { type: 'specificBuildingCount', id: 'grandpa', value: 50 },
-            { type: 'random', chance: 0.003 }
+            { type: 'specificBuildingCount', id: 'grandpa', value: 5 },
+            { type: 'random', chance: 0.1 }
         ],
         condition: {
             type: 'earnIce',
-            value: "building_ips_grandpa * 300 * 0.8", // おじいちゃんの5分間の生産量の80%
-            timeLimit: 300
+            value: 'ips * 60',
+            timeLimit: 240 // 4分
         },
         reward: {
-            type: 'buff',
-            effect: 'buildingPower',
-            buildingId: 'grandpa',
-            multiplier: 5,
-            duration: 600
+            type: 'giveIce',
+            value: 'ips * 30'
+        },
+        cooldown: 600 // 10分
+    },
+    // --- デバッグ用ミッション ---
+    {
+        id: 'debug_mission_1',
+        name: 'デバッグ依頼: クリックしろ！',
+        description: '開発者の魂の叫びを聞け！<br>とにかく10回クリックするんだ！',
+        trigger: { 
+            type: 'debug' // 通常のゲームプレイでは発生しないようにする
+        },
+        condition: {
+            type: 'clickCount',
+            value: 10, // 10回クリック
+            timeLimit: 60 // 60秒
+        },
+        reward: {
+            type: 'giveIce',
+            value: 1000 // 報酬はアイス1000個
         }
     }
 ];
-

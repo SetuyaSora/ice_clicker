@@ -1,15 +1,23 @@
 function checkMissionTriggers() {
-    if (game.currentMission) return;
+    // A mission is already active, or the board is full.
+    if (game.currentMission || game.pendingMissions.length >= settings.missionBoardCapacity) {
+        return;
+    }
 
     const now = Date.now();
+    // Global cooldown after a mission ends.
     if (settings.globalMissionCooldown && (now - game.lastMissionEndTime) < (settings.globalMissionCooldown * 1000)) {
         return;
     }
 
     if (!settings.eventMissions) return;
     for (const mission of settings.eventMissions) {
-        if (game.completedMissions.includes(mission.id)) continue;
-        if (game.missionCooldowns[mission.id] && game.missionCooldowns[mission.id] > now) continue;
+        // Mission is already completed, on the board, or on cooldown.
+        if (game.completedMissions.includes(mission.id) || 
+            game.pendingMissions.some(p => p.id === mission.id) ||
+            (game.missionCooldowns[mission.id] && game.missionCooldowns[mission.id] > now)) {
+            continue;
+        }
 
         const triggers = Array.isArray(mission.trigger) ? mission.trigger : [mission.trigger];
         let allTriggersMet = true;
@@ -56,12 +64,47 @@ function checkMissionTriggers() {
         }
 
         if (allTriggersMet) {
-            startMission(mission);
-            return;
+            addPendingMission(mission);
+            // Stop checking after finding one mission to add.
+            return; 
         }
     }
 }
 
+function addPendingMission(mission) {
+    if (game.pendingMissions.length < settings.missionBoardCapacity && !game.pendingMissions.some(m => m.id === mission.id)) {
+        game.pendingMissions.push(mission);
+        updateMissionBoardUI();
+    }
+}
+
+function acceptMission(missionId) {
+    if (game.currentMission) {
+        showInfoToast("同時に複数のミッションは受けられません。");
+        return;
+    }
+
+    const missionIndex = game.pendingMissions.findIndex(m => m.id === missionId);
+    if (missionIndex === -1) return; // Mission not found
+
+    const missionToStart = game.pendingMissions.splice(missionIndex, 1)[0];
+    
+    startMission(missionToStart);
+    
+    hideMissionBoard();
+    updateMissionBoardUI();
+}
+
+function discardMission(missionId) {
+    showConfirmation("本当にこの依頼を破棄しますか？", () => {
+        const missionIndex = game.pendingMissions.findIndex(m => m.id === missionId);
+        if (missionIndex > -1) {
+            game.pendingMissions.splice(missionIndex, 1);
+            updateMissionBoardUI();
+            showInfoToast("依頼を破棄しました。");
+        }
+    });
+}
 
 function startMission(mission) {
     game.currentMission = {
@@ -140,6 +183,8 @@ function updateMission() {
             break;
     }
 
+    console.log(`[ミッション進捗] ${data.name}: ${formatNumber(currentProgress)} / ${formatNumber(mission.goal)} | クリア判定: ${currentProgress >= mission.goal}`);
+
     if (currentProgress >= mission.goal) {
         endMission(true);
         return;
@@ -148,92 +193,41 @@ function updateMission() {
     updateMissionUI(currentProgress);
 }
 
-function updateMissionUI(currentProgress) {
-    if (!game.currentMission) return;
-    const mission = game.currentMission;
-    const data = mission.missionData;
-    const elapsedTime = (Date.now() - mission.startTime) / 1000;
-    const remainingTime = Math.max(0, mission.timeLimit - elapsedTime);
-
-    let progressValue = currentProgress;
-    if (progressValue === undefined) {
-         switch (data.condition.type) {
-            case 'earnIce':
-                progressValue = game.totalIceCreamsMade - mission.startValue;
-                break;
-            case 'clickCount':
-                progressValue = game.clicks - mission.startValue;
-                break;
-            default:
-                progressValue = 0;
-        }
-    }
-    
-    const progress = Math.min(100, (progressValue / mission.goal) * 100);
-    
-    missionProgressBar.style.width = `${progress}%`;
-    missionProgressTextEl.textContent = `${formatNumber(Math.floor(progressValue))} / ${formatNumber(mission.goal)}`;
-    
-    const minutes = Math.floor(remainingTime / 60).toString().padStart(2, '0');
-    const seconds = Math.floor(remainingTime % 60).toString().padStart(2, '0');
-    missionTimerEl.textContent = `${minutes}:${seconds}`;
-}
-
 function endMission(isSuccess) {
     if (!game.currentMission) return;
 
     const mission = game.currentMission;
     const data = mission.missionData;
 
-    const rewardText = isSuccess ? getRewardText(data.reward) : '';
-    showMissionResultPopup(isSuccess, data.name, rewardText);
+    showMissionResultPopup(isSuccess, data, mission.rewardValue);
 
     if (isSuccess) {
-        giveReward(data.reward);
-        if (data.trigger.type !== 'random') {
+        giveReward(data.reward, mission.rewardValue);
+        if (!data.id.startsWith('debug_')) { // デバッグミッションは完了リストに追加しない
             game.completedMissions.push(mission.id);
         }
     }
     
-    if (data.trigger.cooldown) {
-        game.missionCooldowns[mission.id] = Date.now() + (data.trigger.cooldown * 1000);
+    if (data.cooldown) {
+        game.missionCooldowns[mission.id] = Date.now() + (data.cooldown * 1000);
     }
 
     game.lastMissionEndTime = Date.now();
     game.currentMission = null;
-    eventMissionPanel.classList.add('hidden');
+    updateMissionBoardUI();
+    updateMissionUI(); 
 }
 
-function getRewardText(reward) {
-    if (!reward) return '';
-    const rewardValue = game.currentMission.rewardValue;
-
-    switch (reward.type) {
-        case 'giveIce':
-            return `報酬: アイス ${formatNumber(rewardValue)}個！`;
-        case 'buff':
-            let effectText = '';
-            if (reward.effect === 'clickPower') effectText = 'クリックパワー';
-            else if (reward.effect === 'buildingPower' && reward.buildingId) {
-                const building = settings.buildings.find(b => b.id === reward.buildingId);
-                effectText = `${building.name}の生産性`;
-            }
-            return `報酬: ${reward.duration}秒間、${effectText}が${reward.multiplier}倍に！`;
-        default:
-            return '';
-    }
-}
-
-function giveReward(reward) {
-    const rewardValue = game.currentMission.rewardValue;
-    switch (reward.type) {
-        case 'giveIce':
-            game.iceCreams += rewardValue;
-            game.totalIceCreamsMade += rewardValue;
-            break;
-        case 'buff':
-            console.log(`Buff activated: ${reward.effect} x${reward.multiplier} for ${reward.duration}s`);
-            break;
+    function giveReward(reward, rewardValue) {
+        switch (reward.type) {
+            case 'giveIce':
+                game.iceCreams += rewardValue;
+                game.totalIceCreamsMade += rewardValue;
+                break;
+            case 'buff':
+                // ここにバフ処理を追加します
+                console.log(`Buff activated: ${reward.effect} x${reward.multiplier} for ${reward.duration}s`);
+                break;
     }
 }
 

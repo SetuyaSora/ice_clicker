@@ -21,6 +21,8 @@ function saveGameBySlot(slot) {
         completedMissions: game.completedMissions,
         missionCooldowns: game.missionCooldowns,
         lastMissionEndTime: game.lastMissionEndTime,
+        pendingMissions: game.pendingMissions, // ミッションボードの状態を追加
+        timestamp: Date.now()
     };
     localStorage.setItem(SAVE_KEY_PREFIX + slot, JSON.stringify(saveData));
     localStorage.setItem(LAST_SLOT_KEY, slot);
@@ -41,6 +43,7 @@ function loadGameBySlot(slot) {
         game.completedMissions = savedData.completedMissions || [];
         game.missionCooldowns = savedData.missionCooldowns || {};
         game.lastMissionEndTime = savedData.lastMissionEndTime || 0;
+        game.pendingMissions = savedData.pendingMissions || []; // ミッションボードの状態をロード
         
         localStorage.setItem(LAST_SLOT_KEY, slot);
         return true;
@@ -53,6 +56,22 @@ function autoSave() {
 }
 
 function loadInitialData() {
-    return loadGameBySlot(AUTOSAVE_SLOT);
+    const lastSlot = localStorage.getItem(LAST_SLOT_KEY);
+    // 最後にセーブしたスロット、もしくはオートセーブスロットからロードを試みる
+    return loadGameBySlot(lastSlot !== null ? lastSlot : AUTOSAVE_SLOT);
+}
+
+/**
+ * すべてのセーブデータを削除し、ゲームを初期状態に戻します。
+ */
+function resetGame() {
+    // オートセーブとスロット1〜3のデータを削除
+    localStorage.removeItem(LAST_SLOT_KEY);
+    localStorage.removeItem(SAVE_KEY_PREFIX + AUTOSAVE_SLOT);
+    for (let i = 1; i <= 3; i++) {
+        localStorage.removeItem(SAVE_KEY_PREFIX + i);
+    }
+    // ページをリロードして変更を適用
+    window.location.reload();
 }
 

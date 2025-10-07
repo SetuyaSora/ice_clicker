@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-[#FFF5E1] text-[#5C3D2E] select-none">
@@ -53,6 +54,25 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Mission Board Toggle -->
+    <button id="mission-board-toggle" class="fixed right-5 top-5 bg-yellow-400 p-3 rounded-l-full shadow-lg clickable z-40">
+        <i class="fa-solid fa-clipboard-list text-2xl text-white"></i>
+        <div id="mission-board-notification" class="hidden absolute -top-1 -left-1 w-5 h-5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold">!</div>
+    </button>
+    
+    <!-- Mission Board Panel -->
+    <div id="mission-board-panel" class="fixed top-0 right-0 h-full w-80 md:w-96 bg-[#fffbeb] shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out">
+        <div class="flex flex-col h-full">
+            <div class="flex justify-between items-center p-4 bg-yellow-400 text-white">
+                <h2 class="text-2xl font-bold">ミッションボード</h2>
+                <button id="close-mission-board-btn" class="text-3xl font-bold clickable">&times;</button>
+            </div>
+            <div id="mission-board-list" class="p-3 space-y-3 overflow-y-auto flex-grow">
+                <!-- Mission cards will be dynamically inserted here -->
+            </div>
+        </div>
     </div>
 
     <!-- Tooltip -->

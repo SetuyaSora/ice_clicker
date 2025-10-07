@@ -10,6 +10,7 @@ let game = {
     debugMenuOpened: false,
     secretTabUnlocked: false,
     currentMission: null,
+    pendingMissions: [], // Missions waiting on the board
     completedMissions: [],
     missionCooldowns: {},
     activeBuffs: [],
@@ -57,6 +58,76 @@ const missionResultPopupEl = document.getElementById('mission-result-popup');
 const missionResultContentEl = document.getElementById('mission-result-content');
 const missionResultTitleEl = document.getElementById('mission-result-title');
 const missionResultMessageEl = document.getElementById('mission-result-message');
+// Mission Board Elements
+const missionBoardToggleEl = document.getElementById('mission-board-toggle');
+const missionBoardPanelEl = document.getElementById('mission-board-panel');
+const closeMissionBoardBtn = document.getElementById('close-mission-board-btn');
+
+
+function executeDebugCommand(command) {
+    const parts = command.split(' ');
+    const cmd = parts[0];
+    const args = parts.slice(1);
+
+    switch (cmd) {
+        case 'getice':
+            const amount = parseInt(args[0], 10);
+            if (!isNaN(amount)) {
+                game.iceCreams += amount;
+                showInfoToast(`アイスを ${formatNumber(amount)} 個入手しました。`);
+            } else {
+                showInfoToast("無効な数値です。");
+            }
+            return true;
+        case 'unlockach':
+            const achId = args[0];
+            if (achId) {
+                const achievement = settings.achievements.find(a => a.id === achId);
+                if (achievement && !game.unlockedAchievements.includes(achId)) {
+                    unlockAchievement(achId, true); // trueで強制解除
+                } else if (!achievement) {
+                    showInfoToast(`実績ID「${achId}」が見つかりません。`);
+                } else {
+                    showInfoToast("その実績は既に解除済みです。");
+                }
+            } else {
+                showInfoToast("実績IDを指定してください。");
+            }
+            return true;
+
+        case 'addmission':
+            const missionId = args[0];
+            if (!missionId) {
+                showInfoToast("ミッションIDを指定してください。");
+                return true;
+            }
+            const missionToAdd = settings.eventMissions.find(m => m.id === missionId);
+            if (missionToAdd) {
+                if (game.pendingMissions.length >= settings.missionBoardCapacity) {
+                    showInfoToast("ミッションボードが満杯です。");
+                } else if (game.pendingMissions.some(p => p.id === missionId)) {
+                    showInfoToast("そのミッションは既にボードにあります。");
+                } else {
+                    addPendingMission(missionToAdd);
+                    showInfoToast(`ミッション「${missionToAdd.name}」をボードに追加しました。`);
+                }
+            } else {
+                showInfoToast(`ミッションID「${missionId}」が見つかりません。`);
+            }
+            return true;
+        
+        case 'reset':
+            showConfirmation('本当にすべてのセーブデータをリセットしますか？この操作は取り消せません。', () => {
+                resetGame(); // save.js のリセット関数を呼び出す
+            });
+            // 確認モーダルが表示されるので、デバッグウィンドウは閉じさせない
+            return true; 
+        
+        default:
+            showInfoToast("不明なコマンドです。");
+            return true;
+    }
+}
 
 
 document.addEventListener('DOMContentLoaded', init);
@@ -69,6 +140,7 @@ function init() {
         settings.achievements = [...gameMainAchievements, ...gameSecretAchievements];
         settings.eventMissions = gameEventMissions;
         settings.globalMissionCooldown = gameSettings.globalMissionCooldown;
+        settings.missionBoardCapacity = 3; // Max missions on board
 
         const wasLoaded = loadInitialData();
 
@@ -107,6 +179,7 @@ function init() {
         setupEventListeners();
         updateUI();
         updateAchievementsPanelUI();
+        updateMissionBoardUI();
 
         setInterval(gameLoop, 100);
         setInterval(autoSave, 5000);
@@ -118,16 +191,20 @@ function init() {
 }
 
 function gameLoop() {
-    checkMissionTriggers();
-    updateMission();
-
+    // 1. このフレームで生産されるアイスの量を計算
     const ips = calculateIps();
     const fameBonus = 1 + (game.famePoints / 100);
     const iceCreamsToAdd = (ips * fameBonus) / 10;
 
+    // 2. ゲームの状態を更新
     game.iceCreams += iceCreamsToAdd;
     game.totalIceCreamsMade += iceCreamsToAdd;
     
+    // 3. 更新された状態でミッションの発生・進捗をチェック
+    checkMissionTriggers();
+    updateMission();
+    
+    // 4. UIの更新と実績のチェック
     updateUI();
     checkAchievements();
 }
@@ -165,6 +242,10 @@ function setupEventListeners() {
     const toggleSecretBtn = document.getElementById('toggle-secret-achievements-btn');
     toggleMainBtn.addEventListener('click', () => setAchievementView('main'));
     toggleSecretBtn.addEventListener('click', () => setAchievementView('secret'));
+
+    // Mission Board Listeners
+    missionBoardToggleEl.addEventListener('click', () => showMissionBoard());
+    closeMissionBoardBtn.addEventListener('click', () => hideMissionBoard());
 
     setupSaveLoadEventListeners();
 
@@ -218,4 +299,5 @@ function setupEventListeners() {
         }
     });
 }
+
 
