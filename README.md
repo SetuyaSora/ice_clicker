@@ -13,15 +13,23 @@
 ### スクリーンショット
 
 **メイン画面**
-![ゲームのメイン画面](./images/screenshot/screenshot-main.png)
+
+<img src="./images/screenshot/screenshot-main.png" alt="ゲームのメイン画面" width="600">
+
 *ここがあなたの帝国の中心。すべての指示はここから下されます。*
 
+
 **実績システム**
-![ゲームの実績画面](./images/screenshot/screenshot-achievements.png)
+
+<img src="./images/screenshot/screenshot-achievements.png" alt="ゲームの実績画面" width="600">
+
 *王道を征く者か、誰も知らない裏道を歩む者か。あなたのプレイスタイルが実績となって刻まれます。*
 
+
 **ミッションボード**
-![ゲームのミッションボード](./images/screenshot/screenshot-missionbord.png)
+
+<img src="./images/screenshot/screenshot-missionbord.png" alt="ゲームのミッションボード" width="600">
+
 *あなたの名声を聞きつけた者たちから、次々と依頼が舞い込みます。こなせば莫大な報酬が…？*
 
 ## 帝国を築くための主要機能
