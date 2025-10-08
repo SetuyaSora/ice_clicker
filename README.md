@@ -71,3 +71,9 @@
 * JavaScript (Vanilla JS)
 
 さあ、世界を、いや、宇宙を甘い幸せで満たす準備はできましたか？
+
+---
+## ライセンス
+
+このプロジェクトは[MIT License](https://opensource.org/licenses/MIT)の下で公開されています。詳細については、`LICENSE`ファイルをご覧ください。
+
